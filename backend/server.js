@@ -396,11 +396,14 @@ app.put('/api/batches/:batchId', batchLimiter, protect, authorizeBatchOwner, val
         const { batchId } = req.params;
         const validatedData = req.body;
 
+        // Normalize stage to lowercase for consistency
+        const normalizedStage = validatedData.stage.toLowerCase();
+
         // Note: authorizeBatchOwner middleware already checks if batch exists
         // and verifies ownership, so we can proceed directly to update
 
         const update = {
-            stage: validatedData.stage,
+            stage: normalizedStage,
             actor: validatedData.actor,
             location: validatedData.location,
             timestamp: validatedData.timestamp,
@@ -411,14 +414,14 @@ app.put('/api/batches/:batchId', batchLimiter, protect, authorizeBatchOwner, val
             { batchId },
             {
                 $push: { updates: update },
-                currentStage: validatedData.stage,
+                currentStage: normalizedStage,
                 blockchainHash: simulateBlockchainHash(update),
                 syncStatus: 'pending'
             },
             { new: true }
         );
 
-        console.log(`[SUCCESS] Batch updated: ${batchId} to stage ${validatedData.stage} by ${validatedData.actor} from IP: ${req.ip}`);
+        console.log(`[SUCCESS] Batch updated: ${batchId} to stage ${normalizedStage} by ${validatedData.actor} from IP: ${req.ip}`);
 
         const response = apiResponse.successResponse(
             { batch },

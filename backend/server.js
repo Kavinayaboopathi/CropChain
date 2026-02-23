@@ -21,6 +21,7 @@ const { createBatchSchema, updateBatchSchema } = require("./validations/batchSch
 const { protect, adminOnly, authorizeBatchOwner, authorizeRoles } = require('./middleware/auth');
 const apiResponse = require('./utils/apiResponse');
 const crypto = require('crypto');
+const mongoose = require('mongoose');
 
 // Import MongoDB Model
 const Batch = require('./models/Batch');
@@ -182,37 +183,28 @@ app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
     customSiteTitle: 'CropChain API Documentation'
 }));
 
-// Blockchain configuration - FAIL FAST if missing required env vars
+// Blockchain configuration
+const REQUIRED_ENV_VARS = [
+    'INFURA_URL',
+    'CONTRACT_ADDRESS',
+    'PRIVATE_KEY'
+];
+
+if (process.env.NODE_ENV !== 'test') {
+    REQUIRED_ENV_VARS.forEach((key) => {
+        if (!process.env[key]) {
+            throw new Error(`Missing required environment variable: ${key}`);
+        }
+    });
+
+    if (!/^0x[a-fA-F0-9]{64}$/.test(process.env.PRIVATE_KEY)) {
+        throw new Error('Invalid PRIVATE_KEY format');
+    }
+}
+
 const PROVIDER_URL = process.env.INFURA_URL;
 const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
-
-// Validate required environment variables - fail fast strategy (CVSS 9.8 fix)
-if (!PROVIDER_URL || !CONTRACT_ADDRESS || !PRIVATE_KEY) {
-    const missing = [];
-    if (!PROVIDER_URL) missing.push('INFURA_URL');
-    if (!CONTRACT_ADDRESS) missing.push('CONTRACT_ADDRESS');
-    if (!PRIVATE_KEY) missing.push('PRIVATE_KEY');
-    
-    console.error(`🚨 SECURITY ERROR: Missing required environment variables: ${missing.join(', ')}`);
-    console.error('Application refuses to start without required blockchain configuration.');
-    console.error('Please set these environment variables before starting the server.');
-    
-    if (process.env.NODE_ENV === 'production') {
-        // In production, refuse to start without proper configuration
-        throw new Error('FATAL: Missing required blockchain environment variables. Application cannot start.');
-    } else {
-        // In development, warn but allow starting
-        console.warn('⚠️  WARNING: Running in development mode without full blockchain configuration.');
-    }
-}
-
-// Optional: Validate private key format
-if (PRIVATE_KEY) {
-    if (!PRIVATE_KEY.startsWith('0x') || PRIVATE_KEY.length !== 66) {
-        throw new Error('Invalid private key format. Must be 64 hex characters (0x + 64 chars).');
-    }
-}
 
 // Initialize blockchain provider and contract (reused for listener)
 let provider;

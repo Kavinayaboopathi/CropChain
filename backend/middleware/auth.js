@@ -26,7 +26,7 @@ const protect = async (req, res, next) => {
                 });
             }
 
-            next();
+            return next();
         } catch (error) {
             return res.status(401).json({
                 error: 'Not authorized',
@@ -48,9 +48,9 @@ const protect = async (req, res, next) => {
  */
 const adminOnly = (req, res, next) => {
     if (req.user && req.user.role === 'admin') {
-        next();
+        return next();
     } else {
-        res.status(403).json({
+        return res.status(403).json({
             error: 'Access denied',
             message: 'Admin access required',
         });
@@ -62,9 +62,9 @@ const adminOnly = (req, res, next) => {
  */
 const verifiedOnly = (req, res, next) => {
     if (req.user && req.user.verification?.isVerified) {
-        next();
+        return next();
     } else {
-        res.status(403).json({
+        return res.status(403).json({
             error: 'Access denied',
             message: 'Verified credential required',
         });

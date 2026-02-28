@@ -1,43 +1,51 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Wheat, Plus, RefreshCw, Search, Shield, Sun, Moon } from 'lucide-react';
+import React, { useState } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Menu, LogOut, User, LayoutDashboard, Sun, Moon } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../context/ThemeContext';
 import { CurrencyToggle } from "../components/CurrencyToggle";
 
 
 const Header: React.FC = () => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
 
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { t, i18n } = useTranslation();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    toast.success('Logged out successfully');
+    navigate('/login');
+  };
+
   const navItems = [
-    { path: '/', label: 'Home', icon: Wheat },
-    { path: '/add-batch', label: 'Add Batch', icon: Plus },
-    { path: '/update-batch', label: 'Update Batch', icon: RefreshCw },
-    { path: '/track-batch', label: 'Track Batch', icon: Search },
-    { path: '/admin', label: 'Admin', icon: Shield },
+    { path: '/', label: t('nav.home'), icon: LayoutDashboard },
+    { path: '/dashboard', label: t('nav.dashboard'), icon: LayoutDashboard },
+    { path: '/add-batch', label: t('nav.addBatch'), icon: LayoutDashboard }, // Using LayoutDashboard as placeholder if specific icon not available
   ];
 
   return (
-    <header className="bg-white dark:bg-gray-800 shadow-lg border-b-4 border-green-500">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center space-x-3 text-2xl font-bold text-green-700 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 transition-colors">
-            <Wheat className="h-8 w-8" />
-            <span>CropChain</span>
-          </Link>
+    <>
+      <header className="bg-white dark:bg-gray-800 shadow-lg sticky top-0 z-50 transition-colors duration-200">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-center h-16">
+            {/* Logo */}
+            <Link to="/" className="flex items-center space-x-2">
+              <div className="bg-green-600 p-2 rounded-lg">
+                <LayoutDashboard className="h-6 w-6 text-white" />
+              </div>
+              <span className="text-xl font-bold text-gray-800 dark:text-white">CropChain</span>
+            </Link>
 
-          <nav className="hidden md:flex space-x-8">
-            {navItems.map(({ path, label, icon: Icon }) => (
-              <Link
-                key={path}
-                to={path}
-                className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 ${location.pathname === path
-                    ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 shadow-md'
-                    : 'text-gray-600 dark:text-gray-300 hover:text-green-700 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-gray-700'
-                  }`}
-              >
-                <Icon className="h-4 w-4" />
-                <span className="font-medium">{label}</span>
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-8">
+              <Link to="/" className={`text-gray-600 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 transition-colors ${location.pathname === '/' ? 'text-green-600 dark:text-green-400 font-medium' : ''}`}>
+                {t('nav.home')}
               </Link>
             ))}
           </nav>
@@ -69,8 +77,11 @@ const Header: React.FC = () => {
             </button>
           </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+      {/* Sidebar Component */}
+      <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} navItems={navItems} />
+    </>
   );
 };
 

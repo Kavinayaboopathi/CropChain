@@ -2,6 +2,8 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Wheat, Plus, RefreshCw, Search, Shield, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { CurrencyToggle } from "../components/CurrencyToggle";
+
 
 const Header: React.FC = () => {
   const location = useLocation();
@@ -40,14 +42,24 @@ const Header: React.FC = () => {
             ))}
           </nav>
 
-          {/* Dark Mode Toggle Button */}
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors"
-            aria-label="Toggle dark mode"
-          >
-            {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
-          </button>
+         <div className="flex items-center space-x-3">
+          {/* Currency Toggle */}
+           <CurrencyToggle />
+
+          {/* Dark Mode Toggle */}
+        <button
+          onClick={toggleTheme}
+          className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors"
+          aria-label="Toggle dark mode"
+    >
+          {theme === "light" ? (
+           <Moon className="h-5 w-5" />
+          ) : (
+           <Sun className="h-5 w-5" />
+     )}
+  </button>
+</div>
+
 
           <div className="md:hidden">
             <button className="text-gray-600 dark:text-gray-300 hover:text-green-700 dark:hover:text-green-400">
